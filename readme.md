@@ -1,7 +1,7 @@
-# Comun API
+# Anime API
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
-Comun API using Typescript with Typescript ORM Prisma using database PostgreSQL
+Anime API using Typescript with Typescript ORM Prisma using database MySQL
 
 ## Server Requirement
 - Node v18.10.0+
