@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String?
+  email String  @unique
+  email_verified_at String?
+  password String
+  status Status @default(active)
+  remember_token String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+enum Status {
+  active
+  inactive
+}
+
+model Anime {
+  id Int @id @default(autoincrement())
+  title String
+  japanese String?
+  slug String @unique
+  description String? @db.Text
+  image String?
+  producers String?
+  type String?
+  status String?
+  total_episode String?
+  score String?
+  duration String?
+  released_on String?
+  keywords String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  genres AnimeGenre[]
+  seasons AnimeSeason[]
+  downloads AnimeDownload[]
+}
+
+model AnimeGenre {
+  id Int @id @default(autoincrement())
+  anime_id Int
+  genre_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  anime Anime @relation(fields: [anime_id], references: [id])
+  genre Genre @relation(fields: [genre_id], references: [id])
+}
+
+model AnimeSeason {
+  id Int @id @default(autoincrement())
+  anime_id Int
+  season_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  anime Anime @relation(fields: [anime_id], references: [id])
+  season Season @relation(fields: [season_id], references: [id])
+}
+
+model AnimeDownload {
+  id Int @id @default(autoincrement())
+  anime_id Int
+  quality String
+  name String
+  url String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  anime Anime @relation(fields: [anime_id], references: [id])
+}
+
+model Genre {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  anime_genres AnimeGenre[]
+}
+
+model Season {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  anime_seasons AnimeSeason[]
+}
