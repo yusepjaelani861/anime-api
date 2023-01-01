@@ -99,3 +99,82 @@ model Season {
   updated_at DateTime @updatedAt
   anime_seasons AnimeSeason[]
 }
+
+model Komik {
+  id Int @id @default(autoincrement())
+  title String
+  original String?
+  slug String @unique
+  description String? @db.Text
+  image String?
+  status String?
+  released_on String?
+  updated_on String?
+  author  String? @db.Text
+  total_chapter String?
+  rating String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  chapters KomikChapter[]
+  genres KomikGenre[]
+  types KomikType[]
+}
+
+model KomikGenre {
+  id Int @id @default(autoincrement())
+  komik_id Int
+  genre_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik Komik @relation(fields: [komik_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  genre GenreKomik @relation(fields: [genre_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+model KomikType {
+  id Int @id @default(autoincrement())
+  komik_id Int
+  type_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik Komik @relation(fields: [komik_id], references: [id])
+  type TypeKomik @relation(fields: [type_id], references: [id])
+}
+
+model KomikChapter {
+  id Int @id @default(autoincrement())
+  komik_id Int
+  title String
+  slug String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik Komik @relation(fields: [komik_id], references: [id])
+  images KomikGambar[]
+}
+
+model KomikGambar {
+  id Int @id @default(autoincrement())
+  index Int
+  komik_chapter_id Int
+  image String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik_chapter KomikChapter @relation(fields: [komik_chapter_id], references: [id])
+}
+
+model GenreKomik {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik_genres KomikGenre[]
+}
+
+model TypeKomik {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  komik_types KomikType[]
+}
