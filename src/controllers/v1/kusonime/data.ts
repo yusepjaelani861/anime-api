@@ -91,7 +91,7 @@ const animelist = asyncHandler(async (req: any, res: Response, next: NextFunctio
 
     let anime: any;
     
-    const total_anime = await prisma.anime.count();
+    let total_anime: any;
     let anime_group: Array<any> = [];
 
     if (search) {
@@ -110,6 +110,9 @@ const animelist = asyncHandler(async (req: any, res: Response, next: NextFunctio
             ]
         }
 
+        total_anime = await prisma.anime.count({
+            where: where,
+        });
         anime = await prisma.anime.findMany({
           where: where,
           take: limit,
@@ -141,6 +144,7 @@ const animelist = asyncHandler(async (req: any, res: Response, next: NextFunctio
         }))
     } else {
         limit = 1000;
+        total_anime = await prisma.anime.count();
         anime = await prisma.anime.findMany({
             where: where,
             select: {
@@ -249,6 +253,9 @@ const genres = asyncHandler(async (req: any, res: Response, next: NextFunction) 
             id: true,
             name: true,
             slug: true,
+        },
+        orderBy: {
+            'name': 'asc'
         }
     });
 
@@ -294,7 +301,20 @@ const genre = asyncHandler(async (req: any, res: Response, next: NextFunction) =
                     }
                 ],
                 include: {
-                    anime: true,
+                    anime: {
+                        include: {
+                            genres: {
+                                include: {
+                                    genre: {
+                                        select: {
+                                            name: true,
+                                            slug: true,
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    },
                 }
             }
         },
@@ -309,6 +329,10 @@ const genre = asyncHandler(async (req: any, res: Response, next: NextFunction) =
             genre_id: genre.id
         }
     })
+    
+    await Promise.all(genre.anime_genres.map(async (item: any) => {
+        item.anime.genres = item.anime.genres.map((genre: any) => genre.genre)
+    }))
 
     let posts : Array<any> = [];
     genre.anime_genres.forEach((anime: any) => {
@@ -324,6 +348,9 @@ const seasons = asyncHandler(async (req: any, res: Response, next: NextFunction)
             id: true,
             name: true,
             slug: true,
+        },
+        orderBy: {
+            'name': 'asc'
         }
     })
 
@@ -362,7 +389,20 @@ const season = asyncHandler(async (req: any, res: Response, next: NextFunction) 
         include: {
             anime_seasons: {
                 include: {
-                    anime: true,
+                    anime: {
+                        include: {
+                            genres: {
+                                include: {
+                                    genre: {
+                                        select: {
+                                            name: true,
+                                            slug: true,
+                                        }
+                                    }
+                                }
+                            },
+                        }  
+                    },
                 },
                 take: limit,
                 skip: (page - 1) * limit,
@@ -380,6 +420,10 @@ const season = asyncHandler(async (req: any, res: Response, next: NextFunction) 
             season_id: season.id
         }
     })
+    
+    await Promise.all(season.anime_seasons.map((item: any) => {
+        item.anime.genres = item.anime.genres.map((genre: any) => genre.genre)
+    }))
 
     let posts : Array<any> = [];
     season.anime_seasons.forEach((anime: any) => {

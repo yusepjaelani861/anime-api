@@ -3,7 +3,7 @@ import axiosService from '../../../libraries/axiosServices';
 import asyncHandler from '../../../middleware/async';
 import { NextFunction, Request, Response } from 'express';
 import { sendResponse, sendError } from '../../../libraries/rest';
-import fs, { exists } from 'fs';
+import fs from 'fs';
 import Axios from 'axios';
 
 const url = 'https://kusonime.com';
