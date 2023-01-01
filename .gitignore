@@ -3,5 +3,5 @@ node_modules
 .env
 build
 package-lock.json
-public/images
+public
 prisma/migrations
