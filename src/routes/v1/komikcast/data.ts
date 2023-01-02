@@ -1,18 +1,18 @@
 import express from 'express'
 
 import {
-    komik,
+    detailKomik,
+    homePage,
     listKomik,
-    chapter,
-    home,
-} from '../../../controllers/v1/komikcast/grab'
+    viewChapter,
+} from '../../../controllers/v1/komikcast/data'
 import cache from '../../../middleware/cache'
 
 const router = express.Router()
 
 router
     .route('/')
-    .get(cache(60) ,home)
+    .get(homePage)
 
 router
     .route('/komik')
@@ -20,11 +20,10 @@ router
 
 router
     .route('/komik/:slug')
-    .get(komik)
+    .get(detailKomik)
 
 router
     .route('/chapter/:slug')
-    .get(chapter)
-
+    .get(viewChapter)
 
 export default router

@@ -96,8 +96,6 @@ const komikGet = async (slug: string) => {
     await Promise.all(genre.map(async (item: any) => {
         let genre: any;
 
-        console.log(item.url)
-
         genre = await prisma.genreKomik.findFirst({
             where: {
                 slug: item.url
@@ -129,6 +127,8 @@ const komikGet = async (slug: string) => {
                     genre_id: genre.id
                 }
             })
+
+            console.log('Chapter created for ', title)
         }
     }))
 
@@ -215,44 +215,44 @@ const chapterGet = async (slug: string, id: number) => {
         })
 
         if (!image) {
-            const gambar = await Axios({
-                method: 'get',
-                url: item.url,
-                responseType: "stream",
-            })
+            // const gambar = await Axios({
+            //     method: 'get',
+            //     url: item.url,
+            //     responseType: "stream",
+            // })
 
-            let url: string;
-            if (!fs.existsSync(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/'))) {
-                fs.mkdirSync(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/'));
-            }
+            // let url: string;
+            // if (!fs.existsSync(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/'))) {
+            //     fs.mkdirSync(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/'));
+            // }
 
-            const writer = fs.createWriteStream(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/' + item.url.split('/').pop()));
+            // const writer = fs.createWriteStream(path.join(__dirname, '../../../../public/komik/' + chapter.title.replace(/\s/g, '-') + '/' + item.url.split('/').pop()));
 
-            gambar.data.pipe(writer);
-            url = `/public/komik/${chapter.title.replace(/\s/g, '-')}/${item.url.split('/').pop()}`
+            // gambar.data.pipe(writer);
+            // url = `/public/komik/${chapter.title.replace(/\s/g, '-')}/${item.url.split('/').pop()}`
 
             image = await prisma.komikGambar.create({
                 data: {
                     komik_chapter_id: id,
                     index: item.index,
-                    image: url
+                    image: item.url
                 }
             })
+            console.log('Gambar berhasil dimasukkan pada ' + chapter.title)
         }
     }))
 }
 
 async function loop() {
     try {
-        // const list = await listKomik();
-        const list = await prisma.komik.findMany({
-            take: 100
-        });
+        const list = await listKomik();
+        // const list = await prisma.komik.findMany({
+        //     take: 100
+        // });
 
         await Promise.all(
             list.map(async (komik: any, index: number) => {
-                console.log("process scrape data ", komik.title);
-                await komikGet(komik.slug);
+                await komikGet(komik.url);
             })
         )
     } catch (error: any) {

@@ -6,6 +6,7 @@ import { sendResponse, sendError } from '../../../libraries/rest';
 import fs from 'fs';
 import Axios from 'axios';
 import { eq } from 'cheerio/lib/api/traversing';
+import pagination from '../../../libraries/pagination';
 
 const url = 'https://komikcast.site';
 
@@ -44,7 +45,7 @@ const komik = asyncHandler(async (req: Request, res: Response, next: NextFunctio
         if ($(el).attr('href')?.includes('/genres/')) {
             return {
                 name: $(el).text(),
-                url: $(el).attr('href')?.replace(url, '').replace('/genres/', '').replace('/', '')
+                slug: $(el).attr('href')?.replace(url, '').replace('/genres/', '').replace('/', '')
             }
         }
     }).get();
@@ -67,8 +68,9 @@ const komik = asyncHandler(async (req: Request, res: Response, next: NextFunctio
 
     const chapter = $('div[class="komik_info-chapters"]').find('ul').attr('id', 'chapter-wrapper').attr('class', 'komik_info-chapters-wrapper').find('li').map((i, el) => {
         return {
-            chapter: $(el).find('a').attr('class', 'chapter-link-item').text(),
-            url: $(el).find('a').attr('class', 'chapter-link-item').attr('href')?.replace(url, '').replace('/chapter/', '').replace('/', '')
+            title: $(el).find('a').attr('class', 'chapter-link-item').text(),
+            slug: $(el).find('a').attr('class', 'chapter-link-item').attr('href')?.replace(url, '').replace('/chapter/', '').replace('/', ''),
+            created_at: new Date(),
         }
     }).get()
     chapter.reverse()
@@ -76,17 +78,17 @@ const komik = asyncHandler(async (req: Request, res: Response, next: NextFunctio
     res.json(new sendResponse({
         title,
         original,
-        thumbnail,
-        genre,
+        image: thumbnail,
+        genres: genre,
         released,
         author,
         status,
-        type,
+        types: type,
         total_chapter,
         updated_on,
         rating,
         description,
-        chapter
+        chapters: chapter
     }, 'Success getting data'))
 })
 
@@ -100,17 +102,53 @@ const chapter = asyncHandler(async (req: Request, res: Response, next: NextFunct
     const images = $('div[class="chapter_body"]').find('div').attr('class', 'main-reading-area').find('img').map((i, el) => {
         return {
             index: i,
-            url: $(el).attr('src')
+            image: $(el).attr('src')
+        }
+    }).get()
+    // chapter.chapter = images
+
+    const results = {
+        chapter: {
+            images: images
+        }
+    }
+
+    res.json(new sendResponse(results, 'Success getting data'))
+})
+
+const home = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    let { page = 1, limit = 28 } = req.query;
+
+    page = parseInt(page as string) || 1;
+    limit = parseInt(limit as string) || 28;
+
+    // const halaman = parseInt(page as string) || 1;
+    
+    const response: any = await axiosService(`${url}/daftar-komik/page/${page}?sortby=update`);
+
+    const $ = cheerio.load(response);
+
+    const list = $('div[class="list-update_item"]').map((i, el) => {
+        return {
+            title: $(el).find('div').attr('class', 'list-update_item-info').find('h3').attr('class', 'title').text(),
+            slug: $(el).find('a').attr('class', 'data-tooltip').attr('href')?.replace(url, '').replace('/komik/', '').replace('/', ''),
+            thumbnail: $(el).find('div').attr('class', 'list-update_item-image').find('img').attr('class', 'ts-post-image wp-post-image attachment-medium size-medium').attr('src'),
+            new_chapter: {
+                chapter: $(el).find('div').attr('class', 'list-update_item-info').find('div').attr('class', 'other').find('div').attr('class', 'chapter').eq(0).text().replace('\n', '').replace(' ', ''),
+                slug: $(el).find('div').attr('class', 'list-update_item-info').find('div').attr('class', 'other').find('div').attr('class', 'chapter').attr('href')?.replace(url, '').replace('/chapter/', '').replace('/', '')
+            },
+            rating: $(el).find('div').attr('class', 'list-update_item-info').find('div').attr('class', 'other').find('div').attr('class', 'rate').find('div').attr('class', 'rating').find('div').attr('class', 'numscore').text().replace('\n', '').replace(' ', '').replace('\n\n\n\n\n\n\n\n\n\n\n', ''),
         }
     }).get()
 
     res.json(new sendResponse({
-        images
-    }, 'Success getting data'))
+        list
+    }, 'Success getting data', pagination(page, limit, list.length * 100)))
 })
 
 export {
     komik,
     listKomik,
     chapter,
+    home,
 }
