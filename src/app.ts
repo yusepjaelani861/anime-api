@@ -28,11 +28,12 @@ app.get('/', (req, res) => {
 import auth from './routes/v1/authentication';
 import kusonime from './routes/v1/kusonime';
 import komikcast from './routes/v1/komikcast';
-
+import images from './routes/v1/images';
 
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/kusonime', kusonime);
 app.use('/api/v1/komikcast', komikcast);
+app.use('/api/v1/images', images);
 
 
 
